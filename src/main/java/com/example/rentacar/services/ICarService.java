@@ -7,8 +7,10 @@ import java.util.List;
 public interface ICarService {
 
     public List<Car> getAlLCars();
+    public Car getCarById(long id);
     public Car registerCar(CarDTO carDTO);
     public Car updateCar(long carId, CarDTO carDTO);
+
 
 
 }

@@ -30,6 +30,13 @@ public class CarServiceImplementation implements ICarService {
     }
 
     @Override
+    public Car getCarById(long id){
+        return carRepository.findById(id).orElse(null);
+    }
+
+
+
+    @Override
     public Car registerCar(CarDTO carDTO) {
         /*TODO:
         * registerCar: Buscar como se usa el mapper de forma no conflictiva con el Car.Id y el CarType.Id
@@ -76,4 +83,6 @@ public class CarServiceImplementation implements ICarService {
 
 
     }
+
+
 }

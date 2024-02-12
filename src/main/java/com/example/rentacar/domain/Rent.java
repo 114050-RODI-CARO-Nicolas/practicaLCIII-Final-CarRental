@@ -17,6 +17,8 @@ public class Rent implements Serializable {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "id_car", referencedColumnName = "id")
     private Car car;
     private Integer rentedDays;
     private LocalDateTime startRent;

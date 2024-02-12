@@ -25,6 +25,13 @@ public class CarController {
         return carServiceImp.getAlLCars();
     }
 
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Car> getCarById(@PathVariable long id){
+        Car foundCar= carServiceImp.getCarById(id);
+        return ResponseEntity.ok(foundCar);
+    }
+
     @PostMapping("/new")
     public ResponseEntity<Car> registerCar(@RequestBody CarDTO carDTO){
         Car newCar= carServiceImp.registerCar(carDTO);
@@ -37,6 +44,7 @@ public class CarController {
         Car updatedCar = carServiceImp.updateCar(id, carDTO);
         return new ResponseEntity<>(updatedCar, HttpStatus.OK);
     }
+
 
 
 
