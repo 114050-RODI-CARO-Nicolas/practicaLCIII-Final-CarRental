@@ -40,6 +40,7 @@ public class CarServiceImplementation implements ICarService {
     public Car registerCar(CarDTO carDTO) {
         /*TODO:
         * registerCar: Buscar como se usa el mapper de forma no conflictiva con el Car.Id y el CarType.Id
+        * Excepcion: hacia donde propaga y como se contiene esa excepcion?
         */
         try {
            // Car car=modelMapper.map(carDTO, Car.class);
