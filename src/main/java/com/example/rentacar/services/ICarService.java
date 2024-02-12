@@ -8,6 +8,7 @@ public interface ICarService {
 
     public List<Car> getAlLCars();
     public Car registerCar(CarDTO carDTO);
+    public Car updateCar(long carId, CarDTO carDTO);
 
 
 }

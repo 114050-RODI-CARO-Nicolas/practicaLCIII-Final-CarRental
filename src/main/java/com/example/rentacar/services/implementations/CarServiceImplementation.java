@@ -31,22 +31,49 @@ public class CarServiceImplementation implements ICarService {
 
     @Override
     public Car registerCar(CarDTO carDTO) {
-
+        /*TODO:
+        * registerCar: Buscar como se usa el mapper de forma no conflictiva con el Car.Id y el CarType.Id
+        */
         try {
            // Car car=modelMapper.map(carDTO, Car.class);
-
             Car newCar=new Car();
             newCar.setBrand(carDTO.getBrand());
             newCar.setModel(carDTO.getModel());
-
-
             CarType carType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("CarType not found"));
-
             newCar.setCarType(carType);
             return carRepository.save(newCar);
         }
         catch (Exception e) {
             throw e;
         }
+    }
+    @Override
+    public Car updateCar(long carId, CarDTO carDTO) {
+        /*TODO:
+        Buscar forma mas automatizada, tal vez con el ModelMapper,
+        de actualizar solo las properties del Car que correspondan segun campos presentes en el DTO
+        */
+
+        try {
+            Car carToUpdate=carRepository.getById(carId);
+            if(carDTO.getBrand()!=null) {
+                carToUpdate.setBrand(carToUpdate.getBrand());
+            }
+            if(carDTO.getModel()!=null){
+                carToUpdate.setModel(carDTO.getModel());
+            }
+            if(carDTO.getCarTypeId()!=null){
+                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("CarType not found"));
+                carToUpdate.setCarType(newCarType);
+            }
+
+
+            return carRepository.save(carToUpdate);
+        }
+        catch (Exception e) {
+            throw e;
+        }
+
+
     }
 }
