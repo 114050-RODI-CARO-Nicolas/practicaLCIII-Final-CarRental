@@ -3,6 +3,7 @@ package com.example.rentacar.services.implementations;
 import com.example.rentacar.DTOs.CarDTO;
 import com.example.rentacar.domain.Car;
 import com.example.rentacar.domain.CarType;
+import com.example.rentacar.exceptions.CurrentlyRentedCarException;
 import com.example.rentacar.repositories.CarTypeRepository;
 import com.example.rentacar.services.ICarService;
 import com.example.rentacar.repositories.CarRepository;
@@ -80,6 +81,22 @@ public class CarServiceImplementation implements ICarService {
         }
         catch (Exception e) {
             throw e;
+        }
+
+
+    }
+
+    @Override
+    public void deleteCar (long carId) {
+
+
+        try {
+            carRepository.deleteById(carId);
+
+        }
+        catch(Exception e) {
+
+            throw new CurrentlyRentedCarException(e.getMessage());
         }
 
 

@@ -4,6 +4,8 @@ package com.example.rentacar.controllers;
 import com.example.rentacar.DTOs.CarDTO;
 import com.example.rentacar.domain.Car;
 
+import com.example.rentacar.exceptions.CurrentlyRentedCarException;
+import com.example.rentacar.exceptions.ErrorResponse;
 import com.example.rentacar.services.implementations.CarServiceImplementation;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -44,6 +47,29 @@ public class CarController {
         Car updatedCar = carServiceImp.updateCar(id, carDTO);
         return new ResponseEntity<>(updatedCar, HttpStatus.OK);
     }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<HashMap<String, String>> deleteCar(@PathVariable long id)
+    {
+        HashMap<String, String> deleteStatus=new HashMap<>();
+
+            carServiceImp.deleteCar(id);
+           deleteStatus.put("Eliminado", "True");
+           return ResponseEntity.ok(deleteStatus);
+
+
+    }
+
+    @ExceptionHandler(value = CurrentlyRentedCarException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleCurrentlyRentedCarException (
+            CurrentlyRentedCarException ex
+    ) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), "CurrentlyRentedCarException");
+    }
+
+
+
 
 
 

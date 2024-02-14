@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 
 @RestController
@@ -29,6 +30,24 @@ public class RentController {
     public ResponseEntity<Rent> registerCar(@RequestBody RentDTO rentDTO){
         Rent newRent= rentServiceImp.registerRent(rentDTO);
         return new ResponseEntity<>(newRent, HttpStatus.CREATED);
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<HashMap<String, String>> deleteCar(@PathVariable long id)
+    {
+        HashMap<String, String> deleteStatus=new HashMap<>();
+        try {
+            rentServiceImp.deleteRent(id);
+            deleteStatus.put("Eliminado", "true");
+            return ResponseEntity.ok(deleteStatus);
+        }
+        catch (Exception e) {
+            deleteStatus.put("Eliminado", e.getMessage());
+            return ResponseEntity.internalServerError().body(deleteStatus);
+
+        }
+
+
     }
 
 

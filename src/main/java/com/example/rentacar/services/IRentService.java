@@ -10,5 +10,7 @@ public interface IRentService {
     Rent registerRent(RentDTO rentDTO);
     List<Rent> getAllRents();
 
+    void deleteRent(long id);
+
 
 }

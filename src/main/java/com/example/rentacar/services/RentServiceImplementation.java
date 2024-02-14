@@ -33,4 +33,17 @@ public class RentServiceImplementation implements IRentService {
     public List<Rent> getAllRents() {
         return rentRepository.findAll();
     }
+
+    @Override
+    public void deleteRent(long id) {
+        try {
+
+            rentRepository.deleteById(id);
+        }
+        catch  (Exception e) {
+
+            throw e;
+        }
+
+    }
 }
