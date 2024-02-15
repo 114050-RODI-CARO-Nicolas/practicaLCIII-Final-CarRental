@@ -80,7 +80,7 @@ public class CarServiceImplementation implements ICarService {
                 carToUpdate.setModel(carDTO.getModel());
             }
             if(carDTO.getCarTypeId()!=null){
-                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("CarType not found"));
+                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElse(null);
                 carToUpdate.setCarType(newCarType);
             }
 

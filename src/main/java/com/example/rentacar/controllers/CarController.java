@@ -49,11 +49,12 @@ public class CarController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CarResponseDTO> getCarById(@PathVariable long id){
-        Car foundCar= carServiceImp.getCarById(id);
+        Car foundCar = carServiceImp.getCarById(id);
         CarResponseDTO foundCarDTO=new CarResponseDTO();
         /*TODO:
         Aplicar ModelMapper
          */
+        foundCarDTO.setId(foundCar.getId());
         foundCarDTO.setCarTypeId(foundCar.getCarType().getId());
         foundCarDTO.setBrand(foundCar.getBrand());
         foundCarDTO.setModel(foundCar.getModel());

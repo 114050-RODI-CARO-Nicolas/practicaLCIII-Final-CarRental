@@ -3,16 +3,16 @@ package com.example.rentacar.DTOs;
 import lombok.Getter;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
-public class RentDTO implements Serializable {
+public class RentForCreationDTO implements Serializable {
 
-    private long carId;
+
+    private Long carId;
     private Integer rentedDays;
     private LocalDateTime startRent;
-    private LocalDateTime endRent;
+
 
 
 }
