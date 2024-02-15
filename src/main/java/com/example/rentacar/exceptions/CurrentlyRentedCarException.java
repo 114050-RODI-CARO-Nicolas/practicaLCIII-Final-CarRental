@@ -1,5 +1,7 @@
 package com.example.rentacar.exceptions;
+import lombok.Getter;
 
+@Getter
 public class CurrentlyRentedCarException extends RuntimeException {
 
     private String message;
@@ -8,8 +10,8 @@ public class CurrentlyRentedCarException extends RuntimeException {
     };
 
     public CurrentlyRentedCarException(String msg){
-        super(msg);
-        this.message="CurrentlyRentedCarException" + message;
+        super("CurrentlyRentedCarException: " + msg);
+        this.message="CurrentlyRentedCarException: " + msg;
     }
 
 

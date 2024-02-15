@@ -38,11 +38,11 @@ public class RentController {
         HashMap<String, String> deleteStatus=new HashMap<>();
         try {
             rentServiceImp.deleteRent(id);
-            deleteStatus.put("Eliminado", "true");
+            deleteStatus.put("Success", "true");
             return ResponseEntity.ok(deleteStatus);
         }
         catch (Exception e) {
-            deleteStatus.put("Eliminado", e.getMessage());
+            deleteStatus.put("Message", e.getMessage());
             return ResponseEntity.internalServerError().body(deleteStatus);
 
         }

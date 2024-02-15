@@ -13,6 +13,6 @@ public class RentDTO implements Serializable {
     private Integer rentedDays;
     private LocalDateTime startRent;
     private LocalDateTime endRent;
-    private BigDecimal totalPrice;
+
 
 }
