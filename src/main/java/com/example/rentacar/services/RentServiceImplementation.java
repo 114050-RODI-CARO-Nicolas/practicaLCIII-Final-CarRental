@@ -8,6 +8,7 @@ import com.example.rentacar.exceptions.CurrentlyRentedCarException;
 import com.example.rentacar.exceptions.RentedAtParticularDatePeriodException;
 import com.example.rentacar.repositories.CarRepository;
 import com.example.rentacar.repositories.RentRepository;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -37,7 +38,7 @@ public class RentServiceImplementation implements IRentService {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         Rent newRent=new Rent();
-        Car carToRent=carRepository.findById(rentForCreationDTO.getCarId()).orElse(null);
+        Car carToRent=carRepository.findById(rentForCreationDTO.getCarId()).orElseThrow( ()-> new EntityNotFoundException("Source: RegisterRent() - The requested car does not exist."));
 
         List<Rent> existingRents = carToRent.getRentList();
 
@@ -58,7 +59,7 @@ public class RentServiceImplementation implements IRentService {
 
         if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, newRent.getStartRent(), newRent.getEndRent()))
         {
-            throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+            throw new RentedAtParticularDatePeriodException("Source: RegisterRent() - The car is under rental at the requested date.");
         }
 
         newRent.setTotalPrice(carToRent.getCarType().getPrice().multiply(   new BigDecimal(rentForCreationDTO.getRentedDays())));
@@ -71,13 +72,14 @@ public class RentServiceImplementation implements IRentService {
 
     @Override
     public Rent getRentById(long id) {
-      return rentRepository.findById(id).orElse(null);
+      return rentRepository.findById(id).orElseThrow( ()-> new EntityNotFoundException("Source: GetRentById() - The requested rent could not be found"));
     }
 
     @Override
     public void deleteRent(long id) {
         try {
 
+            Rent rentToDelete = rentRepository.findById(id).orElseThrow( ()-> new EntityNotFoundException("DeleteRent() - No rent found with the requested id") );
             rentRepository.deleteById(id);
         }
         catch  (Exception e) {
@@ -97,8 +99,8 @@ public class RentServiceImplementation implements IRentService {
 
         LocalDateTime currentDateTime = LocalDateTime.now();
 
-        Rent rentToUpdate=rentRepository.findById(id).orElse(null);
-        Car carToRent=carRepository.findById(rentToUpdate.getCar().getId()).orElse(null);
+        Rent rentToUpdate=rentRepository.findById(id).orElseThrow( ()-> new EntityNotFoundException("Source: UpdateRent() - The requested rent was not found") );
+        Car carToRent=carRepository.findById(rentToUpdate.getCar().getId()).orElseThrow(()-> new EntityNotFoundException("Source: UpdateRent() - The car associated to the requested rent could not be found")) ;
 
         List<Rent> existingRents = carToRent.getRentList();
         rentToUpdate.setRentedDays(rentForUpdateDTO.getRentedDays());
@@ -108,7 +110,7 @@ public class RentServiceImplementation implements IRentService {
             LocalDateTime CalculatedSystemLocalDateTimeEndRent = currentDateTime.plusDays(rentToUpdate.getRentedDays());
 
             if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, currentDateTime, CalculatedSystemLocalDateTimeEndRent) ) {
-                throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+                throw new RentedAtParticularDatePeriodException("Source: UpdateRent() - The car is under rental at the requested date.");
             }
             rentToUpdate.setStartRent(currentDateTime);
             rentToUpdate.setEndRent(CalculatedSystemLocalDateTimeEndRent);
@@ -118,7 +120,7 @@ public class RentServiceImplementation implements IRentService {
             LocalDateTime DTOCalculatedEndRent = rentForUpdateDTO.getStartRent().plusDays(rentToUpdate.getRentedDays());
 
             if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, rentForUpdateDTO.getStartRent(), DTOCalculatedEndRent ) ) {
-                throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+                throw new RentedAtParticularDatePeriodException("Source: UpdateRent() - The car is under rental at the requested date.");
             }
             rentToUpdate.setStartRent(rentForUpdateDTO.getStartRent());
             rentToUpdate.setEndRent(DTOCalculatedEndRent);

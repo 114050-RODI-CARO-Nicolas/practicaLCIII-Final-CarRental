@@ -9,6 +9,7 @@ import com.example.rentacar.exceptions.CurrentlyRentedCarException;
 import com.example.rentacar.exceptions.ErrorResponse;
 import com.example.rentacar.exceptions.RentedAtParticularDatePeriodException;
 import com.example.rentacar.services.RentServiceImplementation;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -101,8 +102,17 @@ public class RentController {
         return new ResponseEntity<>(updatedRent, HttpStatus.OK);
     }
 
+
+    @ExceptionHandler(value= EntityNotFoundException.class)
+    public ErrorResponse handleEntityNotFoundException (
+            EntityNotFoundException ex
+    ) {
+        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+    }
+
+
     @ExceptionHandler(value = RentedAtParticularDatePeriodException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    //@ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleRentedAtParticularDatePeriodException (
             RentedAtParticularDatePeriodException ex
     ) {

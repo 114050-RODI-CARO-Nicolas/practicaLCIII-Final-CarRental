@@ -4,13 +4,13 @@ import com.example.rentacar.DTOs.CarDTO;
 import com.example.rentacar.domain.Car;
 import com.example.rentacar.domain.CarType;
 import com.example.rentacar.domain.Rent;
-import com.example.rentacar.exceptions.BadRequestException;
 import com.example.rentacar.exceptions.CurrentlyRentedCarException;
 import com.example.rentacar.repositories.CarTypeRepository;
 import com.example.rentacar.repositories.RentRepository;
 import com.example.rentacar.services.ICarService;
 import com.example.rentacar.repositories.CarRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.coyote.BadRequestException;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -42,7 +42,7 @@ public class CarServiceImplementation implements ICarService {
 
     @Override
     public Car getCarById(long id){
-        return carRepository.findById(id).orElse(null);
+        return carRepository.findById(id).orElseThrow( ()-> new EntityNotFoundException("Source: getCarById() - No car found with the provided ID."));
     }
 
     @Override
@@ -58,7 +58,7 @@ public class CarServiceImplementation implements ICarService {
                 return true;
             }
         } else {
-            throw new EntityNotFoundException("The requested car was not found");
+            throw new EntityNotFoundException("Source CheckAvailability() - The requested car was not found");
         }
 
     }
@@ -75,7 +75,7 @@ public class CarServiceImplementation implements ICarService {
             Car newCar=new Car();
             newCar.setBrand(carDTO.getBrand());
             newCar.setModel(carDTO.getModel());
-            CarType carType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("CarType not found"));
+            CarType carType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("Source: RegisterCar(). CarType not found"));
             newCar.setCarType(carType);
             return carRepository.save(newCar);
         }
@@ -91,7 +91,7 @@ public class CarServiceImplementation implements ICarService {
         */
 
         try {
-            Car carToUpdate=carRepository.getById(carId);
+            Car carToUpdate=carRepository.findById(carId).orElseThrow( ()-> new EntityNotFoundException("Source: UpdateCar() - The requested car does not exist."));
             if(carDTO.getBrand()!=null) {
                 carToUpdate.setBrand(carToUpdate.getBrand());
             }
@@ -99,7 +99,7 @@ public class CarServiceImplementation implements ICarService {
                 carToUpdate.setModel(carDTO.getModel());
             }
             if(carDTO.getCarTypeId()!=null){
-                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElse(null);
+                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("Source: UpdateCar()-> The requested car type does not exist"));
                 carToUpdate.setCarType(newCarType);
             }
 
@@ -122,14 +122,14 @@ public class CarServiceImplementation implements ICarService {
             boolean isCurrentlyRented = false;
             Car carToDelete = carRepository.findById(carId).orElse(null);
             if(carToDelete==null){
-               throw new BadRequestException("No car has been found with the ID provided");
+               throw new EntityNotFoundException("Source: DeleteCar() - No car has been found with the ID provided");
             }
 
             if (carToDelete != null) {
                 List<Rent> rents = carToDelete.getRentList();
                 isCurrentlyRented = ProcessUtils.checkIfCurrentlyRented(rents);
                 if (isCurrentlyRented) {
-                    throw new CurrentlyRentedCarException("The car is currently under rental and cannot be deleted from the database.");
+                    throw new CurrentlyRentedCarException("Source: DeleteCar() - The car is currently under rental and cannot be deleted from the database.");
                 } else {
                     carRepository.deleteById(carId);
 

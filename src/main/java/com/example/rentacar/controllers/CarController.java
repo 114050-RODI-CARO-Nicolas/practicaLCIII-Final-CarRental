@@ -100,14 +100,14 @@ public class CarController {
 
 
     @ExceptionHandler(value = CurrentlyRentedCarException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+   // @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleCurrentlyRentedCarException (
             CurrentlyRentedCarException ex
     ) {
         return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
     };
     @ExceptionHandler(value= BadRequestException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    //@ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException (
             BadRequestException ex
     ) {
@@ -115,11 +115,11 @@ public class CarController {
     }
 
     @ExceptionHandler(value = EntityNotFoundException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    //@ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleEntityNotFoundException (
             EntityNotFoundException ex
     ) {
-        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
     }
 
 }
