@@ -19,6 +19,7 @@ import javax.management.BadAttributeValueExpException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import com.example.rentacar.services.utils.ProcessUtils;
 
 @Service
 public class CarServiceImplementation implements ICarService {
@@ -33,6 +34,7 @@ public class CarServiceImplementation implements ICarService {
     CarTypeRepository carTypeRepository;
 
 
+
     @Override
     public List<Car> getAlLCars() {
      return carRepository.findAll();
@@ -43,6 +45,23 @@ public class CarServiceImplementation implements ICarService {
         return carRepository.findById(id).orElse(null);
     }
 
+    @Override
+    public boolean checkAvailabilityByDate(long id, LocalDateTime dateToCheck) {
+
+        Car carToCheck = carRepository.findById(id).orElse(null);
+        if(carToCheck!=null) {
+            List<Rent> existingRents = carToCheck.getRentList();
+            if(ProcessUtils.checkIfRentedAtParticularDate(existingRents, dateToCheck)) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        } else {
+            throw new EntityNotFoundException("The requested car was not found");
+        }
+
+    }
 
 
     @Override
@@ -80,7 +99,7 @@ public class CarServiceImplementation implements ICarService {
                 carToUpdate.setModel(carDTO.getModel());
             }
             if(carDTO.getCarTypeId()!=null){
-                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElseThrow(()-> new EntityNotFoundException("CarType not found"));
+                CarType newCarType=carTypeRepository.findById(carDTO.getCarTypeId()).orElse(null);
                 carToUpdate.setCarType(newCarType);
             }
 
@@ -95,17 +114,6 @@ public class CarServiceImplementation implements ICarService {
     }
 
 
-    public boolean checkIfCurrentlyRented(List<Rent> rents) {
-        LocalDateTime currentDateTime = LocalDateTime.now();
-        for (Rent rent:rents) {
-            if(currentDateTime.isAfter(rent.getStartRent())&& currentDateTime.isBefore(rent.getEndRent()) )
-            {   return true;
-
-            }
-        }
-        return false;
-
-    }
 
 
     @Override
@@ -119,7 +127,7 @@ public class CarServiceImplementation implements ICarService {
 
             if (carToDelete != null) {
                 List<Rent> rents = carToDelete.getRentList();
-                isCurrentlyRented = checkIfCurrentlyRented(rents);
+                isCurrentlyRented = ProcessUtils.checkIfCurrentlyRented(rents);
                 if (isCurrentlyRented) {
                     throw new CurrentlyRentedCarException("The car is currently under rental and cannot be deleted from the database.");
                 } else {

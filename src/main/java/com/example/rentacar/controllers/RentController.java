@@ -1,16 +1,20 @@
 package com.example.rentacar.controllers;
 
 
-import com.example.rentacar.DTOs.CarDTO;
-import com.example.rentacar.DTOs.RentDTO;
-import com.example.rentacar.domain.Car;
+import com.example.rentacar.DTOs.RentForCreationDTO;
+import com.example.rentacar.DTOs.RentForUpdateDTO;
+import com.example.rentacar.DTOs.RentResponseDTO;
 import com.example.rentacar.domain.Rent;
+import com.example.rentacar.exceptions.CurrentlyRentedCarException;
+import com.example.rentacar.exceptions.ErrorResponse;
+import com.example.rentacar.exceptions.RentedAtParticularDatePeriodException;
 import com.example.rentacar.services.RentServiceImplementation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -22,18 +26,40 @@ public class RentController {
     RentServiceImplementation rentServiceImp;
 
     @GetMapping("/all")
-    public List<Rent> getAllCars(){
-        return rentServiceImp.getAllRents();
+    public ResponseEntity<List<RentResponseDTO>> getAllRents(){
+
+        /*
+        TODO: Aplicar Mapper
+         */
+
+        List<Rent> rents = rentServiceImp.getAllRents();
+        List<RentResponseDTO> rentResponseDTOList= new ArrayList<RentResponseDTO>();
+
+        for (Rent rent:rents)
+        {
+
+            RentResponseDTO rentResponseDTO=new RentResponseDTO();
+            rentResponseDTO.setRentId(rent.getId());
+            rentResponseDTO.setBrand(rent.getCar().getBrand());
+            rentResponseDTO.setModel(rent.getCar().getModel());
+            rentResponseDTO.setRentedDays(rent.getRentedDays());
+            rentResponseDTO.setStartRent(rent.getStartRent());
+            rentResponseDTO.setEndRent(rent.getEndRent());
+            rentResponseDTO.setTotalPrice(rent.getTotalPrice());
+            rentResponseDTOList.add(rentResponseDTO);
+        }
+
+        return ResponseEntity.ok(rentResponseDTOList);
     }
 
     @PostMapping("/new")
-    public ResponseEntity<Rent> registerCar(@RequestBody RentDTO rentDTO){
-        Rent newRent= rentServiceImp.registerRent(rentDTO);
+    public ResponseEntity<Rent> registerRent (@RequestBody RentForCreationDTO rentForCreationDTO){
+        Rent newRent= rentServiceImp.registerRent(rentForCreationDTO);
         return new ResponseEntity<>(newRent, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<HashMap<String, String>> deleteCar(@PathVariable long id)
+    public ResponseEntity<HashMap<String, String>> deleteRent (@PathVariable long id)
     {
         HashMap<String, String> deleteStatus=new HashMap<>();
         try {
@@ -46,9 +72,42 @@ public class RentController {
             return ResponseEntity.internalServerError().body(deleteStatus);
 
         }
-
-
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RentResponseDTO> getRentInfo(@PathVariable long id)
+    {
+         /*
+            TODO: Aplicar Mapper
+         */
+
+        Rent foundRent = rentServiceImp.getRentById(id);
+        RentResponseDTO rentResponseDTO = new RentResponseDTO();
+        rentResponseDTO.setRentId(foundRent.getId());
+        rentResponseDTO.setBrand(foundRent.getCar().getBrand());
+        rentResponseDTO.setModel(foundRent.getCar().getModel());
+        rentResponseDTO.setRentedDays(foundRent.getRentedDays());
+        rentResponseDTO.setStartRent(foundRent.getStartRent());
+        rentResponseDTO.setEndRent(foundRent.getEndRent());
+        rentResponseDTO.setTotalPrice(foundRent.getTotalPrice());
+
+        return ResponseEntity.ok(rentResponseDTO);
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<Rent> updateRent(@PathVariable long id, @RequestBody RentForUpdateDTO rentForUpdateDTO){
+
+        Rent updatedRent = rentServiceImp.updateRent(id, rentForUpdateDTO);
+        return new ResponseEntity<>(updatedRent, HttpStatus.OK);
+    }
+
+    @ExceptionHandler(value = RentedAtParticularDatePeriodException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleRentedAtParticularDatePeriodException (
+            RentedAtParticularDatePeriodException ex
+    ) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+    };
 
 
 
