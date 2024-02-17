@@ -41,9 +41,6 @@ public class RentServiceImplementation implements IRentService {
 
         List<Rent> existingRents = carToRent.getRentList();
 
-
-
-
         newRent.setCar(carToRent);
         newRent.setRentedDays(rentForCreationDTO.getRentedDays());
         if(rentForCreationDTO.getStartRent()==null)
@@ -51,13 +48,16 @@ public class RentServiceImplementation implements IRentService {
             newRent.setStartRent(currentDateTime);
            // newRent.setEndRent(newRent.getStartRent().plusDays(newRent.getRentedDays()));
             newRent.setEndRent(currentDateTime.plusDays(rentForCreationDTO.getRentedDays()));
-        } else {
+        }
+        else
+        {
             newRent.setStartRent(rentForCreationDTO.getStartRent());
             //newRent.setEndRent(newRent.getEndRent().plusDays(newRent.getRentedDays()));
             newRent.setEndRent(rentForCreationDTO.getStartRent().plusDays(rentForCreationDTO.getRentedDays()));
         }
 
-        if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, newRent.getStartRent()) ) {
+        if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, newRent.getStartRent(), newRent.getEndRent()))
+        {
             throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
         }
 
@@ -89,38 +89,40 @@ public class RentServiceImplementation implements IRentService {
 
     @Override
     public Rent updateRent(long id, RentForUpdateDTO rentForUpdateDTO) {
-
-        LocalDateTime currentDateTime = LocalDateTime.now();
-
-        /*
+          /*
         -Se puede actualizar el int rentedDays y la fecha startRent, y en base a eso se calcula la endRent.
         -Si se envia la startRent, se toma esa nueva fecha como inicio de renta.
         -Si no se envia la startRent, se toma como fecha de inicio la fecha de sistema.
          */
+
+        LocalDateTime currentDateTime = LocalDateTime.now();
+
         Rent rentToUpdate=rentRepository.findById(id).orElse(null);
         Car carToRent=carRepository.findById(rentToUpdate.getCar().getId()).orElse(null);
 
         List<Rent> existingRents = carToRent.getRentList();
-
-        /*
-        if(rentForUpdateDTO.getCarId()!=null){
-            Car newCar = carRepository.findById(rentForUpdateDTO.getCarId()).orElse(null);
-            rentToUpdate.setCar(newCar);
-        } */
-
         rentToUpdate.setRentedDays(rentForUpdateDTO.getRentedDays());
+
         if(rentForUpdateDTO.getStartRent()==null) {
-            if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, currentDateTime) ) {
+
+            LocalDateTime CalculatedSystemLocalDateTimeEndRent = currentDateTime.plusDays(rentToUpdate.getRentedDays());
+
+            if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, currentDateTime, CalculatedSystemLocalDateTimeEndRent) ) {
                 throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
             }
             rentToUpdate.setStartRent(currentDateTime);
-            rentToUpdate.setEndRent(currentDateTime.plusDays(rentForUpdateDTO.getRentedDays()));
-        } else {
-            if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, rentForUpdateDTO.getStartRent()) ) {
+            rentToUpdate.setEndRent(CalculatedSystemLocalDateTimeEndRent);
+        }
+        else
+        {
+            LocalDateTime DTOCalculatedEndRent = rentForUpdateDTO.getStartRent().plusDays(rentToUpdate.getRentedDays());
+
+            if ( ProcessUtils.CheckIfRequestedRentPeriodCollidesWithExistingRents(existingRents, rentForUpdateDTO.getStartRent(), DTOCalculatedEndRent ) ) {
                 throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
             }
             rentToUpdate.setStartRent(rentForUpdateDTO.getStartRent());
-            rentToUpdate.setEndRent(rentForUpdateDTO.getStartRent().plusDays(rentForUpdateDTO.getRentedDays()));
+            rentToUpdate.setEndRent(DTOCalculatedEndRent);
+
         }
 
 
