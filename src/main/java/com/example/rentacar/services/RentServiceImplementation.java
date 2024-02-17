@@ -4,6 +4,8 @@ import com.example.rentacar.DTOs.RentForCreationDTO;
 import com.example.rentacar.DTOs.RentForUpdateDTO;
 import com.example.rentacar.domain.Car;
 import com.example.rentacar.domain.Rent;
+import com.example.rentacar.exceptions.CurrentlyRentedCarException;
+import com.example.rentacar.exceptions.RentedAtParticularDatePeriodException;
 import com.example.rentacar.repositories.CarRepository;
 import com.example.rentacar.repositories.RentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.rentacar.services.utils.ProcessUtils;
 
 @Service
 
@@ -23,6 +26,8 @@ public class RentServiceImplementation implements IRentService {
     @Autowired
     CarRepository carRepository;
 
+
+
     @Override
     public Rent registerRent(RentForCreationDTO rentForCreationDTO) {
         /*
@@ -32,8 +37,14 @@ public class RentServiceImplementation implements IRentService {
         LocalDateTime currentDateTime = LocalDateTime.now();
 
         Rent newRent=new Rent();
-        Car rentedCar=carRepository.findById(rentForCreationDTO.getCarId()).orElse(null);
-        newRent.setCar(rentedCar);
+        Car carToRent=carRepository.findById(rentForCreationDTO.getCarId()).orElse(null);
+
+        List<Rent> existingRents = carToRent.getRentList();
+
+
+
+
+        newRent.setCar(carToRent);
         newRent.setRentedDays(rentForCreationDTO.getRentedDays());
         if(rentForCreationDTO.getStartRent()==null)
         {
@@ -44,11 +55,13 @@ public class RentServiceImplementation implements IRentService {
             newRent.setStartRent(rentForCreationDTO.getStartRent());
             //newRent.setEndRent(newRent.getEndRent().plusDays(newRent.getRentedDays()));
             newRent.setEndRent(rentForCreationDTO.getStartRent().plusDays(rentForCreationDTO.getRentedDays()));
-
         }
-        //newRent.setEndRent(currentDateTime.plusDays(rentForCreationDTO.getRentedDays()));
 
-        newRent.setTotalPrice(rentedCar.getCarType().getPrice().multiply(   new BigDecimal(rentForCreationDTO.getRentedDays())));
+        if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, newRent.getStartRent()) ) {
+            throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+        }
+
+        newRent.setTotalPrice(carToRent.getCarType().getPrice().multiply(   new BigDecimal(rentForCreationDTO.getRentedDays())));
         return rentRepository.save(newRent);
     }
     @Override
@@ -85,22 +98,31 @@ public class RentServiceImplementation implements IRentService {
         -Si no se envia la startRent, se toma como fecha de inicio la fecha de sistema.
          */
         Rent rentToUpdate=rentRepository.findById(id).orElse(null);
+        Car carToRent=carRepository.findById(rentToUpdate.getCar().getId()).orElse(null);
 
+        List<Rent> existingRents = carToRent.getRentList();
+
+        /*
         if(rentForUpdateDTO.getCarId()!=null){
             Car newCar = carRepository.findById(rentForUpdateDTO.getCarId()).orElse(null);
             rentToUpdate.setCar(newCar);
-        }
+        } */
 
         rentToUpdate.setRentedDays(rentForUpdateDTO.getRentedDays());
         if(rentForUpdateDTO.getStartRent()==null) {
+            if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, currentDateTime) ) {
+                throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+            }
             rentToUpdate.setStartRent(currentDateTime);
-            //rentToUpdate.setEndRent(rentToUpdate.getStartRent().plusDays(rentToUpdate.getRentedDays()));
             rentToUpdate.setEndRent(currentDateTime.plusDays(rentForUpdateDTO.getRentedDays()));
         } else {
+            if ( ProcessUtils.checkIfRentedAtParticularDate(existingRents, rentForUpdateDTO.getStartRent()) ) {
+                throw new RentedAtParticularDatePeriodException("The car is under rental at the requested date.");
+            }
             rentToUpdate.setStartRent(rentForUpdateDTO.getStartRent());
-          //rentToUpdate.setEndRent(rentToUpdate.getEndRent().plusDays(rentToUpdate.getRentedDays()));
             rentToUpdate.setEndRent(rentForUpdateDTO.getStartRent().plusDays(rentForUpdateDTO.getRentedDays()));
         }
+
 
         rentToUpdate.setTotalPrice(rentToUpdate.getCar().getCarType().getPrice().multiply(new BigDecimal(rentToUpdate.getRentedDays())));
 

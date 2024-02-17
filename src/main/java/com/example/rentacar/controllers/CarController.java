@@ -11,11 +11,13 @@ import com.example.rentacar.exceptions.ErrorResponse;
 import com.example.rentacar.services.implementations.CarServiceImplementation;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -83,9 +85,19 @@ public class CarController {
             deleteStatus.put("Eliminado", "True");
             return ResponseEntity.ok(deleteStatus);
 
+    }
 
+    @GetMapping("/availability/{id}/{date}")
+    public ResponseEntity<HashMap<String, Boolean>> checkIfAvailableAtDate(@PathVariable long id, @PathVariable LocalDateTime date) {
+
+        HashMap<String, Boolean> availableStatus=new HashMap<>();
+        boolean result= carServiceImp.checkAvailabilityByDate(id, date);
+        availableStatus.put("Available", result);
+        return ResponseEntity.ok(availableStatus);
 
     }
+
+
 
     @ExceptionHandler(value = CurrentlyRentedCarException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -98,6 +110,14 @@ public class CarController {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleBadRequestException (
             BadRequestException ex
+    ) {
+        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(value = EntityNotFoundException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleEntityNotFoundException (
+            EntityNotFoundException ex
     ) {
         return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }

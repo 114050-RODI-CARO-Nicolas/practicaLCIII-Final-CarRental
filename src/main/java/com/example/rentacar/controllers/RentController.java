@@ -5,6 +5,9 @@ import com.example.rentacar.DTOs.RentForCreationDTO;
 import com.example.rentacar.DTOs.RentForUpdateDTO;
 import com.example.rentacar.DTOs.RentResponseDTO;
 import com.example.rentacar.domain.Rent;
+import com.example.rentacar.exceptions.CurrentlyRentedCarException;
+import com.example.rentacar.exceptions.ErrorResponse;
+import com.example.rentacar.exceptions.RentedAtParticularDatePeriodException;
 import com.example.rentacar.services.RentServiceImplementation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -98,6 +101,13 @@ public class RentController {
         return new ResponseEntity<>(updatedRent, HttpStatus.OK);
     }
 
+    @ExceptionHandler(value = RentedAtParticularDatePeriodException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleRentedAtParticularDatePeriodException (
+            RentedAtParticularDatePeriodException ex
+    ) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+    };
 
 
 

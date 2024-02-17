@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Setter
 public class RentForUpdateDTO implements Serializable {
 
-    private Long carId;
     private Integer rentedDays;
     private LocalDateTime startRent;
 
